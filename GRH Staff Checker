@@ -1,122 +1,192 @@
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local friendCheckDelay = 5
 
-local function createFriendListUI(friendNames)
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "OwnerFriendsUI"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.35, 0, 0.4, 0)
-    frame.Position = UDim2.new(0.325, 0, 0.3, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    frame.BorderSizePixel = 0
-    frame.Active = true
-    frame.Draggable = true
-    frame.Parent = screenGui
+local summerColors = {
+    background = Color3.fromRGB(179, 236, 255), 
+    ownerText = Color3.fromRGB(24, 117, 255),     
+    friendText = Color3.fromRGB(0, 168, 107),     
+    nonFriendText = Color3.fromRGB(255, 84, 92),  
+    border = Color3.fromRGB(77, 184, 255),        
+    shadow = Color3.fromRGB(110, 203, 253),       
+    closeButton = Color3.fromRGB(100, 180, 255)   
+}
 
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-    Instance.new("UIStroke", frame).Color = Color3.fromRGB(255, 165, 0)
 
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -40, 0, 40)
-    title.Position = UDim2.new(0, 10, 0, 5)
-    title.BackgroundTransparency = 1
-    title.Text = "👥 Friends of Owner in Server"
-    title.TextColor3 = Color3.fromRGB(255, 200, 100)
-    title.Font = Enum.Font.GothamBold
-    title.TextScaled = true
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = frame
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "OwnerInfoGUI"
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
-    local closeButton = Instance.new("TextButton")
-    closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.Position = UDim2.new(1, -35, 0, 5)
-    closeButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-    closeButton.Text = "X"
-    closeButton.TextColor3 = Color3.new(1, 1, 1)
-    closeButton.Font = Enum.Font.GothamBold
-    closeButton.TextScaled = true
-    closeButton.Parent = frame
-    Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 6)
 
-    closeButton.MouseButton1Click:Connect(function()
-        local info = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        TweenService:Create(frame, info, {BackgroundTransparency = 1}):Play()
-        for _, obj in pairs(frame:GetChildren()) do
-            if obj:IsA("TextLabel") or obj:IsA("TextButton") then
-                TweenService:Create(obj, info, {
-                    TextTransparency = 1,
-                    BackgroundTransparency = 1
-                }):Play()
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 400, 0, 250)
+mainFrame.Position = UDim2.new(0.5, -200, 0.05, 0)  
+mainFrame.AnchorPoint = Vector2.new(0.5, 0)
+mainFrame.BackgroundColor3 = summerColors.background
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Selectable = true
+mainFrame.ZIndex = 1
+
+
+local border = Instance.new("UIStroke")
+border.Color = summerColors.border
+border.Thickness = 3
+border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+border.Parent = mainFrame
+
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)  -
+corner.Parent = mainFrame
+
+
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.Size = UDim2.new(1, 12, 1, 12)  
+shadow.Position = UDim2.new(0, -6, 0, -6)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = summerColors.shadow
+shadow.ImageTransparency = 0.7
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+shadow.ZIndex = 0
+shadow.Parent = mainFrame
+
+
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 36)  
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundTransparency = 1
+titleBar.ZIndex = 2
+titleBar.Parent = mainFrame
+
+-- Title label (larger text)
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, -50, 1, 0) 
+titleLabel.Position = UDim2.new(0, 15, 0, 0)  
+titleLabel.BackgroundTransparency = 1
+titleLabel.TextColor3 = summerColors.ownerText
+titleLabel.Text = "Staff Detector"
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 18  -- Larger text
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.ZIndex = 2
+titleLabel.Parent = titleBar
+
+-- Close button (larger)
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 28, 0, 28)  -- Larger button
+closeButton.Position = UDim2.new(1, -34, 0.5, -14)  
+closeButton.BackgroundColor3 = summerColors.closeButton
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Text = "×"
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 20  -- Larger text
+closeButton.ZIndex = 2
+closeButton.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(1, 0)
+closeCorner.Parent = closeButton
+
+-- Owner label (larger text)
+local ownerLabel = Instance.new("TextLabel")
+ownerLabel.Name = "OwnerLabel"
+ownerLabel.Size = UDim2.new(1, -30, 0, 28)  
+ownerLabel.Position = UDim2.new(0, 15, 0, 50) 
+ownerLabel.BackgroundTransparency = 1
+ownerLabel.TextColor3 = summerColors.ownerText
+ownerLabel.Text = "Loading owner information..."
+ownerLabel.Font = Enum.Font.Gotham
+ownerLabel.TextSize = 16  -- Larger text
+ownerLabel.TextXAlignment = Enum.TextXAlignment.Left
+ownerLabel.ZIndex = 2
+ownerLabel.Parent = mainFrame
+
+-- Separator
+local separator = Instance.new("Frame")
+separator.Name = "Separator"
+separator.Size = UDim2.new(1, -30, 0, 2)  
+separator.Position = UDim2.new(0, 15, 0, 85)  
+separator.BackgroundColor3 = summerColors.border
+separator.BorderSizePixel = 0
+separator.ZIndex = 2
+separator.Parent = mainFrame
+
+-- Friends label (larger area and text)
+local friendsLabel = Instance.new("TextLabel")
+friendsLabel.Name = "FriendsLabel"
+friendsLabel.Size = UDim2.new(1, -30, 1, -110) 
+friendsLabel.Position = UDim2.new(0, 15, 0, 95)  
+friendsLabel.BackgroundTransparency = 1
+friendsLabel.TextColor3 = Color3.new(1, 1, 1)
+friendsLabel.Text = "Checking staff status..."
+friendsLabel.Font = Enum.Font.Gotham
+friendsLabel.TextSize = 15  -- Larger text
+friendsLabel.TextXAlignment = Enum.TextXAlignment.Left
+friendsLabel.TextYAlignment = Enum.TextYAlignment.Top
+friendsLabel.TextWrapped = true
+friendsLabel.RichText = true  
+friendsLabel.ZIndex = 2
+friendsLabel.Parent = mainFrame
+
+local function checkFriends(ownerId)
+    local friendText = ""
+    local hasStaff = false
+
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player then
+            local success, isFriend = pcall(function()
+                return player:IsFriendsWith(otherPlayer.UserId) and otherPlayer:IsFriendsWith(ownerId)
+            end)
+            
+            if success and isFriend then
+                friendText = friendText .. string.format("<font color='#%s'>✓ %s</font> is a staff member\n", summerColors.friendText:ToHex(), otherPlayer.Name)
+                hasStaff = true
+            else
+                friendText = friendText .. string.format("<font color='#%s'>✗ %s</font> is not a known staff member\n", summerColors.nonFriendText:ToHex(), otherPlayer.Name)
             end
         end
-        task.delay(0.5, function()
-            screenGui:Destroy()
-        end)
+    end
+
+    if not hasStaff then
+        friendsLabel.Text = "<font color='#"..summerColors.nonFriendText:ToHex().."'>No known staff found</font>"
+    else
+        friendsLabel.Text = friendText
+    end
+end
+
+local function getOwnerInfo()
+    local success, creatorId = pcall(function()
+        return game.CreatorId
     end)
 
-    local scrollingFrame = Instance.new("ScrollingFrame")
-    scrollingFrame.Size = UDim2.new(1, -20, 1, -60)
-    scrollingFrame.Position = UDim2.new(0, 10, 0, 50)
-    scrollingFrame.BackgroundTransparency = 1
-    scrollingFrame.ScrollBarThickness = 6
-    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, #friendNames * 30)
-    scrollingFrame.Parent = frame
+    if not success then
+        ownerLabel.Text = "Failed to get owner info"
+        return
+    end
 
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 6)
-    layout.Parent = scrollingFrame
+    local creatorType = game.CreatorType == Enum.CreatorType.User and "User" or "Group"
+    ownerLabel.Text = string.format("Owner: %s (ID: %d)", creatorType, creatorId)
 
-    for _, name in ipairs(friendNames) do
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, -6, 0, 25)
-        label.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-        label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        label.Text = name
-        label.Font = Enum.Font.GothamSemibold
-        label.TextScaled = true
-        label.Parent = scrollingFrame
-        Instance.new("UICorner", label).CornerRadius = UDim.new(0, 6)
+    checkFriends(creatorId)
+    while true do
+        task.wait(friendCheckDelay)
+        checkFriends(creatorId)
     end
 end
 
-local function checkForFriendsWithOwner()
-    local ownerUserId = game.CreatorId
-    if game.CreatorType ~= Enum.CreatorType.User then return end
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
 
-    local detected = {}
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            local success, isFriend = pcall(function()
-                return player:IsFriendsWith(ownerUserId)
-            end)
-
-            if success and isFriend then
-                table.insert(detected, player.Name)
-            end
-        end
-    end
-
-    if #detected > 0 then
-        if not LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("OwnerFriendsUI") then
-            createFriendListUI(detected)
-        end
-    end
-end
-
-repeat task.wait() until LocalPlayer.Character and LocalPlayer:FindFirstChild("PlayerGui")
-
-while true do
-    checkForFriendsWithOwner()
-    task.wait(2)
-end
-
-
-while true do
-    checkForFriendsWithOwner()
-    task.wait(1)
-end
+mainFrame.Parent = screenGui
+getOwnerInfo()
