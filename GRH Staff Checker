@@ -1,88 +1,48 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
 
-local function showStartupUI()
+local function createFriendListUI(friendNames)
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "ScriptOpenedUI"
+    screenGui.Name = "OwnerFriendsUI"
     screenGui.ResetOnSpawn = false
     screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.35, 0, 0.2, 0)
-    frame.Position = UDim2.new(0.325, 0, 0.4, 0)
+    frame.Size = UDim2.new(0.35, 0, 0.4, 0)
+    frame.Position = UDim2.new(0.325, 0, 0.3, 0)
     frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    frame.BackgroundTransparency = 0
     frame.BorderSizePixel = 0
+    frame.Active = true
+    frame.Draggable = true
     frame.Parent = screenGui
 
     Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-    Instance.new("UIStroke", frame).Color = Color3.fromRGB(100, 255, 100)
+    Instance.new("UIStroke", frame).Color = Color3.fromRGB(255, 165, 0)
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 1, -20)
-    label.Position = UDim2.new(0, 10, 0, 10)
-    label.BackgroundTransparency = 1
-    label.Text = "✅ Script Loaded Successfully"
-    label.TextColor3 = Color3.fromRGB(100, 255, 100)
-    label.Font = Enum.Font.GothamBold
-    label.TextScaled = true
-    label.Parent = frame
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -40, 0, 40)
+    title.Position = UDim2.new(0, 10, 0, 5)
+    title.BackgroundTransparency = 1
+    title.Text = "👥 Friends of Owner in Server"
+    title.TextColor3 = Color3.fromRGB(255, 200, 100)
+    title.Font = Enum.Font.GothamBold
+    title.TextScaled = true
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = frame
 
-    local TweenService = game:GetService("TweenService")
-    local info = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -35, 0, 5)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.new(1, 1, 1)
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextScaled = true
+    closeButton.Parent = frame
+    Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 6)
 
-    task.delay(2, function()
-        TweenService:Create(frame, info, {BackgroundTransparency = 1}):Play()
-        TweenService:Create(label, info, {TextTransparency = 1}):Play()
-        task.wait(0.5)
-        screenGui:Destroy()
-    end)
-end
-
-local function showStaffWarningUI()
-    if LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("StaffWarningUI") then return end
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "StaffWarningUI"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.4, 0, 0.25, 0)
-    frame.Position = UDim2.new(0.3, 0, 0.35, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    frame.BackgroundTransparency = 0
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
-
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-    Instance.new("UIStroke", frame).Color = Color3.fromRGB(255, 100, 100)
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 0.6, -20)
-    label.Position = UDim2.new(0, 10, 0, 10)
-    label.BackgroundTransparency = 1
-    label.Text = "⚠️ Staff Member Detected in Server"
-    label.TextColor3 = Color3.fromRGB(255, 85, 85)
-    label.Font = Enum.Font.GothamBold
-    label.TextScaled = true
-    label.Parent = frame
-
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0.5, 0, 0.25, 0)
-    button.Position = UDim2.new(0.25, 0, 0.7, 0)
-    button.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-    button.Text = "Okay"
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.GothamSemibold
-    button.TextScaled = true
-    button.Parent = frame
-
-    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
-    Instance.new("UIStroke", button).Color = Color3.fromRGB(255, 255, 255)
-
-    button.MouseButton1Click:Connect(function()
-        local TweenService = game:GetService("TweenService")
+    closeButton.MouseButton1Click:Connect(function()
         local info = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         TweenService:Create(frame, info, {BackgroundTransparency = 1}):Play()
         for _, obj in pairs(frame:GetChildren()) do
@@ -97,30 +57,66 @@ local function showStaffWarningUI()
             screenGui:Destroy()
         end)
     end)
+
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Size = UDim2.new(1, -20, 1, -60)
+    scrollingFrame.Position = UDim2.new(0, 10, 0, 50)
+    scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.ScrollBarThickness = 6
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, #friendNames * 30)
+    scrollingFrame.Parent = frame
+
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 6)
+    layout.Parent = scrollingFrame
+
+    for _, name in ipairs(friendNames) do
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -6, 0, 25)
+        label.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.Text = name
+        label.Font = Enum.Font.GothamSemibold
+        label.TextScaled = true
+        label.Parent = scrollingFrame
+        Instance.new("UICorner", label).CornerRadius = UDim.new(0, 6)
+    end
 end
 
-local function checkForStaff()
+local function checkForFriendsWithOwner()
+    local ownerUserId = game.CreatorId
+    if game.CreatorType ~= Enum.CreatorType.User then return end
+
+    local detected = {}
+
     for _, player in ipairs(Players:GetPlayers()) do
-        local char = workspace:FindFirstChild(player.Name)
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            local gui = char.HumanoidRootPart:FindFirstChild("OverheadGui")
-            local rank = gui and gui:FindFirstChild("Rank")
-            if rank and typeof(rank.Text) == "string" then
-                local text = rank.Text
-                if text == "Staff" or text == "STAFF" or text == "staff" then
-                    showStaffWarningUI()
-                    return
-                end
+        if player ~= LocalPlayer then
+            local success, isFriend = pcall(function()
+                return player:IsFriendsWith(ownerUserId)
+            end)
+
+            if success and isFriend then
+                table.insert(detected, player.Name)
             end
+        end
+    end
+
+    if #detected > 0 then
+        if not LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("OwnerFriendsUI") then
+            createFriendListUI(detected)
         end
     end
 end
 
 repeat task.wait() until LocalPlayer.Character and LocalPlayer:FindFirstChild("PlayerGui")
 
-showStartupUI()
+while true do
+    checkForFriendsWithOwner()
+    task.wait(2)
+end
+
 
 while true do
-    checkForStaff()
+    checkForFriendsWithOwner()
     task.wait(1)
 end
